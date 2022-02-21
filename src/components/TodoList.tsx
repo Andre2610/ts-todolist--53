@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import TodoItem from "./TodoItem";
+import Tag from "./Tag";
 import { Item } from "../types/types";
 
 export default function TodoList() {
@@ -23,21 +24,47 @@ export default function TodoList() {
       isDone: false,
     },
   ]);
+  const [filterTags, setFilterTags] = useState<string[]>([]);
+
+  const tags = Array.from(new Set(todoList.map((list) => list.tags).flat()));
+
+  const addOrRemoveTagToFilter = (tag: string) => {
+    if (filterTags.includes(tag)) {
+      const tagsToKeep = filterTags.filter((eachTag) => eachTag !== tag);
+      setFilterTags(tagsToKeep);
+    } else {
+      setFilterTags([...filterTags, tag]);
+    }
+  };
 
   function toggleDone(id: number) {
-    console.log("Getting here", id);
     const updatedList = todoList.map((item) => {
       return item.id !== id ? item : { ...item, isDone: !item.isDone };
     });
     setTodoList(updatedList);
   }
 
-  console.log("The Todo List", todoList);
+  const filteredList = filterTags.length
+    ? [
+        ...todoList.filter((list) =>
+          list.tags.find((tag) => filterTags.includes(tag))
+        ),
+      ]
+    : [...todoList];
+
   return (
     <div>
-      <ul>
-        {todoList.map((item) => {
-          const { id, task, tags, isDone } = item;
+      Tags:{" "}
+      {tags.map((tag, index) => (
+        <Tag
+          key={index}
+          tag={tag}
+          addOrRemoveTagToFilter={() => addOrRemoveTagToFilter(tag)}
+        />
+      ))}
+      <ul style={{ listStyle: "none" }}>
+        {filteredList.map((item) => {
+          const { id } = item;
           return (
             <TodoItem key={id} item={item} toggleDone={() => toggleDone(id)} />
           );
